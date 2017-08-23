@@ -33,7 +33,7 @@ Operands must be same type
 |`>`|130|Binary| `Int`, `UInt`, `Double`, `Float`, `String` |
 |`>=`|130|Binary| `Int`, `UInt`, `Double`, `Float`, `String` |
 |`&&`|120|Binary| `Bool` |
-|`||`|110|Binary| `Bool` |
+|`\|\|`|110|Binary| `Bool` |
 
 ## Casting functions
 You can cast with theese functions:
