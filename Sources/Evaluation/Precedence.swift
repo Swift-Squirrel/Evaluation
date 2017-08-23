@@ -428,12 +428,12 @@ struct NotOperator: OperationProtocol {
     let precedence: UInt8 = 200
 
     let operation: Operations = .unary() {
-        (op) in
-        guard let oper  = op as? Bool else {
+        (operand) in
+        guard let oper  = operand as? Bool else {
             throw EvaluationError(
                 kind: .canNotApplyUnaryOperand(
                     oper: "!",
-                    type: String(describing: type(of: op))
+                    type: String(describing: type(of: operand))
                 )
             )
         }

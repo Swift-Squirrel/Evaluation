@@ -8,11 +8,11 @@
 
 class Stack<T> {
     private var items: Array<T>
-    
+
     init() {
         items = [T]()
     }
-    
+
     func push(item: T) {
         items.append(item)
     }
@@ -24,7 +24,7 @@ class Stack<T> {
         }
         return nil
     }
-    
+
     func top() -> T? {
         if !isEmpty() {
             return items.last
@@ -35,7 +35,7 @@ class Stack<T> {
     var count: Int {
         return items.count
     }
-    
+
     func isEmpty() -> Bool {
         return items.isEmpty
     }

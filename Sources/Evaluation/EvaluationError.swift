@@ -6,7 +6,17 @@
 //
 //
 
+/// Error structure
 public struct EvaluationError: Error, CustomStringConvertible {
+    /// Error kind
+    ///
+    /// - canNotApplyBinOperand: Can not apply binary operand
+    /// - canNotApplyUnaryOperand: Can not apply unary operand
+    /// - unexpectedEnd: Unexpected end of string
+    /// - unexpectedCharacter: Unexpected character
+    /// - syntaxError: Syntax error
+    /// - missingValue: Missing value for operand
+    /// - nilFound: Unexpected nil found
     public enum ErrorKind {
         case canNotApplyBinOperand(oper: String, type1: String, type2: String)
         case canNotApplyUnaryOperand(oper: String, type: String)

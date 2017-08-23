@@ -1,10 +1,15 @@
 included:
   - Sources
 
+disabled_rules:
+  - conditional_binding_cascade
+  - cyclomatic_complexity
+  - file_length
+
 custom_rules:
   missing_docs:
     included: ".*.swift"
-    regex: '(?:\n[ \t]*)(?!\/\/\/)(?:\/\/)?[^\n\/@]*(?:\n[ \t]*@\S+)*\n[ \t]*(?:public|open)'
+    regex: '(?:\n[ \t]*)(?!\/\/\/)(?!\/\/ MARK:)(?:\/\/)?[^\n\/@]*(?:\n[ \t]*@\S+)*\n[ \t]*(?:public|open) '
     name: "Missing Docs"
     message: "Types, properties and methods with public or open access level should be documented."
     severity: warning

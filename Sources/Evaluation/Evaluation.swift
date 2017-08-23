@@ -8,8 +8,9 @@
 
 import Foundation
 
+/// Evaluation class
 public class Evaluation {
-    public let string: String
+    private let string: String
     private var tokens = [Token]()
     private let chars: [String]
 
@@ -18,14 +19,16 @@ public class Evaluation {
     /// Postfix notation of given expression
     private var stringPostfix: [String]? = nil
 
+    /// String representation of postfix
     public var postfix: [String] {
         if stringPostfix == nil {
-            stringPostfix = _postfix.map( { $0.value } )
+            stringPostfix = _postfix.map({ $0.value })
         }
         return stringPostfix!
     }
 
     private struct Token {
+        // swiftlint:disable:next nesting
         enum TokenType {
             case operation(oper: OperationProtocol)
             case open
@@ -55,7 +58,7 @@ public class Evaluation {
     /// - Throws: lexical and syntax error as `EvaluationError`
     public init(expression string: String) throws {
         self.string = string
-        chars = Array(string.characters).map( { String(describing: $0) } )
+        chars = Array(string.characters).map({ String(describing: $0) })
         try parseTokens(string: string)
         try makePostfix()
     }
@@ -73,121 +76,16 @@ public class Evaluation {
         index -= 1
     }
 
-    private func parseTokens(string: String) throws {
-        while let char = nextChar() {
-            switch char {
-            case " ":
-                break
-            case "(":
-                addToken(type: .open, value: "(")
-            case ")":
-                addToken(type: .close, value: ")")
-            case "+":
-                addToken(type: .operation(oper: AdditionOperator()), value: "+")
-            case "-":
-                addToken(type: .operation(oper: SubOperator()), value: "-")
-            case "*":
-                addToken(type: .operation(oper: MulOperator()), value: "*")
-            case "/":
-                addToken(type: .operation(oper: DivOperator()), value: "/")
-            case "%":
-                addToken(type: .operation(oper: ModOperator()), value: "%")
-            case "<":
-                guard let char = nextChar() else {
-                    throw EvaluationError(kind: .unexpectedEnd(reading: "<"))
-                }
-                if char == "=" {
-                    addToken(type: .operation(oper: LessEqualOperator()), value: "<=")
-                } else {
-                    addToken(type: .operation(oper: LessOperator()), value: "<")
-                    charBack()
-                }
-            case ">":
-                guard let char = nextChar() else {
-                    throw EvaluationError(kind: .unexpectedEnd(reading: ">"))
-                }
-                if char == "=" {
-                    addToken(type: .operation(oper: GreaterEqualOperator()), value: ">=")
-                } else {
-                    addToken(type: .operation(oper: GreaterOperator()), value: ">")
-                    charBack()
-                }
-            case "=":
-                guard let char = nextChar() else {
-                    throw EvaluationError(kind: .unexpectedEnd(reading: "="))
-                }
-                guard char == "=" else {
-                    throw EvaluationError(kind: .unexpectedCharacter(reading: "=", expected: "=", got: char))
-                }
-                addToken(type: .operation(oper: EqualOperator()), value: "==")
-
-            case "!":
-                guard let char = nextChar() else {
-                    throw EvaluationError(kind: .unexpectedEnd(reading: "!"))
-                }
-                if char == "=" {
-                    addToken(type: .operation(oper: NotEqualOperator()), value: "!=")
-                } else {
-                    addToken(type: .operation(oper: NotOperator()), value: "!")
-                    charBack()
-                }
-            case "&":
-                guard let char = nextChar() else {
-                    throw EvaluationError(kind: .unexpectedEnd(reading: "&"))
-                }
-                guard char == "&" else {
-                    throw EvaluationError(kind: .unexpectedCharacter(reading: "&", expected: "&", got: char))
-                }
-                addToken(type: .operation(oper: AndOperator()), value: "&&")
-            case "|":
-                guard let char = nextChar() else {
-                    throw EvaluationError(kind: .unexpectedEnd(reading: "|"), description: "Unexpected end while reading ||")
-                }
-                guard char == "|" else {
-                    throw EvaluationError(kind: .unexpectedCharacter(reading: "|", expected: "|", got: char), description: "Unexpected character")
-                }
-                addToken(type: .operation(oper: OrOperator()), value: "||")
-
-            case "?":
-                guard let char = nextChar() else {
-                    throw EvaluationError(kind: .unexpectedEnd(reading: "?"), description: "Unexpected end while reading ??")
-                }
-                guard char == "?" else {
-                    throw EvaluationError(kind: .unexpectedCharacter(reading: "?", expected: "?", got: char), description: "Unexpected character")
-                }
-                addToken(type: .operation(oper: NilCoalescingOperator()), value: "??")
-            case "\"":
-                var cnt = ""
-                var char = ""
-                repeat {
-                    guard let char1 = nextChar() else {
-                        throw EvaluationError(kind: .unexpectedEnd(reading: "\""), description: "Unexpected end while reading string")
-                    }
-                    char = char1
-                    cnt += char
-                } while char != "\""
-                cnt.remove(at: cnt.index(before: cnt.endIndex))
-                addToken(type: .string, value: cnt)
-            default:
-                if isNumber(char: char) {
-                    try parseNumber(char: char)
-                } else if isChar(char: char) {
-                    charBack()
-                    try parseVariable()
-                } else {
-                    throw EvaluationError(kind: .unexpectedCharacter(reading: "", expected: "Number|Operand|Symbol", got: char))
-                }
-            }
-        }
-    }
-
+    // swiftlint:disable:next function_body_length
     private func parseVariable() throws {
         var isStarting = true
         var cnt = ""
         while let char = nextChar() {
             if isStarting {
                 guard isChar(char: char) else {
-                    throw EvaluationError(kind: .unexpectedCharacter(reading: cnt, expected: "variable identifier", got: char))
+                    throw EvaluationError(kind: .unexpectedCharacter(reading: cnt,
+                                                                     expected: "variable identifier",
+                                                                     got: char))
                 }
                 cnt += char
                 isStarting = false
@@ -204,7 +102,8 @@ public class Evaluation {
             }
         }
         guard !isStarting else {
-            throw EvaluationError(kind: .unexpectedEnd(reading: cnt), description: "Unexpected end while reading variable: \(cnt)")
+            throw EvaluationError(kind: .unexpectedEnd(reading: cnt),
+                                  description: "Unexpected end while reading variable: \(cnt)")
         }
 
         switch cnt {
@@ -277,7 +176,8 @@ public class Evaluation {
             }
         }
         guard opened == 0 else {
-            throw EvaluationError(kind: .unexpectedEnd(reading: cnt), description: "Unexpected end while reading expression: \(cnt)")
+            throw EvaluationError(kind: .unexpectedEnd(reading: cnt),
+                                  description: "Unexpected end while reading expression: \(cnt)")
         }
         return cnt
     }
@@ -286,7 +186,7 @@ public class Evaluation {
         var cnt = char
         var type: Token.TokenType = .int
         var breaked = false
-        while !breaked, let char = nextChar()  {
+        while !breaked, let char = nextChar() {
             if isNumber(char: char) {
                 cnt += char
             } else if char == "." {
@@ -339,6 +239,126 @@ public class Evaluation {
 }
 
 extension Evaluation {
+
+    // swiftlint:disable function_body_length
+    private func parseTokens(string: String) throws {
+        while let char = nextChar() {
+            switch char {
+            case " ":
+                break
+            case "(":
+                addToken(type: .open, value: "(")
+            case ")":
+                addToken(type: .close, value: ")")
+            case "+":
+                addToken(type: .operation(oper: AdditionOperator()), value: "+")
+            case "-":
+                addToken(type: .operation(oper: SubOperator()), value: "-")
+            case "*":
+                addToken(type: .operation(oper: MulOperator()), value: "*")
+            case "/":
+                addToken(type: .operation(oper: DivOperator()), value: "/")
+            case "%":
+                addToken(type: .operation(oper: ModOperator()), value: "%")
+            case "<":
+                guard let char = nextChar() else {
+                    throw EvaluationError(kind: .unexpectedEnd(reading: "<"))
+                }
+                if char == "=" {
+                    addToken(type: .operation(oper: LessEqualOperator()), value: "<=")
+                } else {
+                    addToken(type: .operation(oper: LessOperator()), value: "<")
+                    charBack()
+                }
+            case ">":
+                guard let char = nextChar() else {
+                    throw EvaluationError(kind: .unexpectedEnd(reading: ">"))
+                }
+                if char == "=" {
+                    addToken(type: .operation(oper: GreaterEqualOperator()), value: ">=")
+                } else {
+                    addToken(type: .operation(oper: GreaterOperator()), value: ">")
+                    charBack()
+                }
+            case "=":
+                guard let char = nextChar() else {
+                    throw EvaluationError(kind: .unexpectedEnd(reading: "="))
+                }
+                guard char == "=" else {
+                    throw EvaluationError(kind: .unexpectedCharacter(reading: "=", expected: "=", got: char))
+                }
+                addToken(type: .operation(oper: EqualOperator()), value: "==")
+
+            case "!":
+                guard let char = nextChar() else {
+                    throw EvaluationError(kind: .unexpectedEnd(reading: "!"))
+                }
+                if char == "=" {
+                    addToken(type: .operation(oper: NotEqualOperator()), value: "!=")
+                } else {
+                    addToken(type: .operation(oper: NotOperator()), value: "!")
+                    charBack()
+                }
+            case "&":
+                guard let char = nextChar() else {
+                    throw EvaluationError(kind: .unexpectedEnd(reading: "&"))
+                }
+                guard char == "&" else {
+                    throw EvaluationError(kind: .unexpectedCharacter(reading: "&", expected: "&", got: char))
+                }
+                addToken(type: .operation(oper: AndOperator()), value: "&&")
+            case "|":
+                guard let char = nextChar() else {
+                    throw EvaluationError(kind: .unexpectedEnd(reading: "|"),
+                                          description: "Unexpected end while reading ||")
+                }
+                guard char == "|" else {
+                    throw EvaluationError(kind: .unexpectedCharacter(reading: "|", expected: "|", got: char),
+                                          description: "Unexpected character")
+                }
+                addToken(type: .operation(oper: OrOperator()), value: "||")
+
+            case "?":
+                guard let char = nextChar() else {
+                    throw EvaluationError(kind: .unexpectedEnd(reading: "?"),
+                                          description: "Unexpected end while reading ??")
+                }
+                guard char == "?" else {
+                    throw EvaluationError(kind: .unexpectedCharacter(reading: "?", expected: "?", got: char),
+                                          description: "Unexpected character")
+                }
+                addToken(type: .operation(oper: NilCoalescingOperator()), value: "??")
+            case "\"":
+                var cnt = ""
+                var char = ""
+                repeat {
+                    guard let char1 = nextChar() else {
+                        throw EvaluationError(kind: .unexpectedEnd(reading: "\""),
+                                              description: "Unexpected end while reading string")
+                    }
+                    char = char1
+                    cnt += char
+                } while char != "\""
+                cnt.remove(at: cnt.index(before: cnt.endIndex))
+                addToken(type: .string, value: cnt)
+            default:
+                if isNumber(char: char) {
+                    try parseNumber(char: char)
+                } else if isChar(char: char) {
+                    charBack()
+                    try parseVariable()
+                } else {
+                    throw EvaluationError(kind: .unexpectedCharacter(reading: "",
+                                                                     expected: "Number|Operand|Symbol",
+                                                                     got: char))
+                }
+            }
+        }
+    }
+}
+// swiftlint:enable function_body_length
+
+extension Evaluation {
     private func getPrecedence(token: Token) -> UInt8? {
         switch token.type {
         case .operation(oper: let oper):
@@ -350,15 +370,18 @@ extension Evaluation {
         }
     }
 
-    fileprivate func makePostfix() throws {
+    private func makePostfix() throws {
         var res = [Token]()
         let stack = Stack<Token>()
         stack.push(item: Token(type: .bottom, value: "#"))
-        
+
         for token in tokens {
             switch token.type {
             case .operation:
-                guard let top = stack.top(), let currentPrecedence = getPrecedence(token: token), let topPrecedence = getPrecedence(token: top) else {
+                // swiftlint:enable cyclomatic_complexity
+                guard let top = stack.top(),
+                    let currentPrecedence = getPrecedence(token: token),
+                    let topPrecedence = getPrecedence(token: top) else {
                     throw EvaluationError(kind: .syntaxError, description: "Syntax error")
                 }
                 if currentPrecedence > topPrecedence {
@@ -423,6 +446,7 @@ extension Evaluation {
     /// - Returns: result of expression
     /// - Throws: semantic and syntax error: `EvaluationError`
     public func evaluate(with data: [String: Any] = [:]) throws -> Any? {
+        // swiftlint:disable:previous function_body_length
         let stack = Stack<Any?>()
 
         for token in _postfix {
@@ -442,7 +466,8 @@ extension Evaluation {
                     stack.push(item: try binary(first!, second!))
                 case .binaryNilCoalescing(let cloalescing):
                     guard stack.count > 1 else {
-                        throw EvaluationError(kind: .missingValue(forOperand: operation.symbol), description: "Missing value for binary operation")
+                        throw EvaluationError(kind: .missingValue(forOperand: operation.symbol),
+                                              description: "Missing value for binary operation")
                     }
                     let second = stack.pop()!
                     let first = stack.pop()!
