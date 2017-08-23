@@ -10,10 +10,10 @@ import Foundation
 
 public class Evaluation {
     public let string: String
-    fileprivate var tokens = [Token]()
-    fileprivate let chars: [String]
+    private var tokens = [Token]()
+    private let chars: [String]
 
-    fileprivate var _postfix = [Token]()
+    private var _postfix = [Token]()
 
     /// Postfix notation of given expression
     private var stringPostfix: [String]? = nil
@@ -25,7 +25,7 @@ public class Evaluation {
         return stringPostfix!
     }
 
-    fileprivate struct Token {
+    private struct Token {
         enum TokenType {
             case operation(oper: OperationProtocol)
             case open
