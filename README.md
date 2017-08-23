@@ -33,7 +33,7 @@ Operands must be same type
 |`>`|130|Binary| `Int`, `UInt`, `Double`, `Float`, `String` |
 |`>=`|130|Binary| `Int`, `UInt`, `Double`, `Float`, `String` |
 |`&&`|120|Binary| `Bool` |
-|`||`|110|Binary| `Bool` |
+|`\|\|`|110|Binary| `Bool` |
 
 ## Casting functions
 You can cast with theese functions:
@@ -215,6 +215,6 @@ You can add this to Package.swift
 
 ```swift
 dependencies: [
-	.Package(url: "https://github.com/LeoNavel/Evaluation.git", majorVersion: 0)
+	.package(url: "https://github.com/LeoNavel/Evaluation.git", from: "0.2.0")
 ]
 ```
