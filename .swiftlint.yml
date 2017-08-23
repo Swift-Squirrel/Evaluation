@@ -1,0 +1,15 @@
+included:
+  - Sources
+
+custom_rules:
+  missing_docs:
+    included: ".*.swift"
+    regex: '(?:\n[ \t]*)(?!\/\/\/)(?:\/\/)?[^\n\/@]*(?:\n[ \t]*@\S+)*\n[ \t]*(?:public|open)'
+    name: "Missing Docs"
+    message: "Types, properties and methods with public or open access level should be documented."
+    severity: warning
+
+line_length:
+  - 120 # warning
+  - 160 # error
+
