@@ -46,6 +46,17 @@ jobs:
             - checkouts
             - repositories
             - x86_64-unknown-linux/debug
+
+  build_release:
+    <<: *defaults
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .build
+      - run:
+          name: Build
+          command: |
+           swift build -c release
   test:
     <<: *defaults
     steps:
@@ -53,14 +64,9 @@ jobs:
       - attach_workspace:
           at: .build
       - run:
-        - name: Find
-        - command: |
-          find .build -type d
-      - run:
           name: Run unit tests
           command: |
             swift test --parallel
-
 workflows:
   version: 2
   resolve_build_and_test:
@@ -69,7 +75,10 @@ workflows:
       - build_debug:
           requires:
             - resolve
+      - build_release:
+          requires:
+            - resolve
       - test:
           requires:
             - build_debug
-
+            - build_release
