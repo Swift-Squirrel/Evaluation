@@ -40,6 +40,10 @@ jobs:
           name: Build
           command: |
            swift build
+      - persist_to_workspace:
+          root: .build
+          paths:
+            - x86_64-unknown-linux/debug
 
   build_release:
     <<: *defaults
