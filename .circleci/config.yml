@@ -1,8 +1,12 @@
+defaults: &defaults
+  docker:
+    - image: klembara/swift4:0.0.1
+
+
 version: 2.0
 jobs: 
   resolve:
-    docker:
-      - image: klembara/swift4:0.0.1
+    <<: *defaults
     steps:
       - checkout
       - restore_cache:
@@ -19,62 +23,43 @@ jobs:
           key: build-cache-{{ .Branch }}-{{ checksum "Package.swift" }}
           paths:
             - .build/
+            - Package.resolved
+      - persist_to_workspace:
+          paths:
+            - .build
 
   build_debug:
-    docker:
-      - image: klembara/swift4:0.0.1
+    <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - build-cache-{{ .Branch }}-{{ checksum "Package.swift" }}
-            - build-cache-{{ .Branch }}
-            - build-cache
+      - attach_workspace:
+          at: .build
       - run:
           name: Build
           command: |
            swift build
-      - save_cache:
-          key: build-cache-{{ .Branch }}-{{ checksum "Package.swift" }}
-          paths:
-            - .build/
+
   build_release:
-    docker:
-      - image: klembara/swift4:0.0.1
+    <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - build-cache-{{ .Branch }}-{{ checksum "Package.swift" }}
-            - build-cache-{{ .Branch }}
-            - build-cache
+      - attach_workspace:
+          at: .build
       - run:
           name: Build
           command: |
            swift build -c release
-      - save_cache:
-          key: build-cache-{{ .Branch }}-{{ checksum "Package.swift" }}
-          paths:
-            - .build/
 
   test:
-    docker:
-      - image: klembara/swift4:0.0.1
+    <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - build-cache-{{ .Branch }}-{{ checksum "Package.swift" }}
-            - build-cache-{{ .Branch }}
-            - build-cache
+      - attach_workspace:
+          at: .build
       - run:
           name: Run unit tests
           command: |
             swift test --parallel
-      - save_cache:
-          key: build-cache-{{ .Branch }}-{{ checksum "Package.swift" }}
-          paths:
-            - .build/
 
 workflows:
   version: 2
