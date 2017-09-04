@@ -65,6 +65,10 @@ jobs:
       - attach_workspace:
           at: .build
       - run:
+        - name: Find
+        - command: |
+          find .build -type d
+      - run:
           name: Run unit tests
           command: |
             swift test --parallel
@@ -74,19 +78,14 @@ workflows:
   resolve_build_and_test:
     jobs:
       - resolve
-      - run:
-        - name: Find
-        - command: |
-          find .build -type d
-
       - build_debug:
           requires:
             - resolve
-      - build_release:
-          requires:
-            - resolve
+      # - build_release:
+      #     requires:
+      #       - resolve
       - test:
           requires:
             - build_debug
-            - build_release
+            # - build_release
 
