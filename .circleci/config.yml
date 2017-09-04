@@ -46,18 +46,6 @@ jobs:
             - checkouts
             - repositories
             - x86_64-unknown-linux/debug
-
-  build_release:
-    <<: *defaults
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .build
-      - run:
-          name: Build
-          command: |
-            swift build -c release
-
   test:
     <<: *defaults
     steps:
