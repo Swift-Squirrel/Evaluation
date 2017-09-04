@@ -81,11 +81,7 @@ workflows:
       - build_debug:
           requires:
             - resolve
-      # - build_release:
-      #     requires:
-      #       - resolve
       - test:
           requires:
             - build_debug
-            # - build_release
 
