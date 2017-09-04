@@ -56,7 +56,7 @@ jobs:
       - run:
           name: Build
           command: |
-           swift build -c release
+            swift build -c release
 
   test:
     <<: *defaults
@@ -74,6 +74,11 @@ workflows:
   resolve_build_and_test:
     jobs:
       - resolve
+      - run:
+        - name: Find
+        - command: |
+          find .build -type d
+
       - build_debug:
           requires:
             - resolve
