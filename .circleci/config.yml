@@ -9,43 +9,25 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - build-cache-{{ .Branch }}-{{ checksum "Package.swift" }}
-            - build-cache-{{ .Branch }}
-            - build-cache
       - run:
           name: Build
-          command: |
-           swift package resolve
-           swift package update
-      - save_cache:
-          key: build-cache-{{ .Branch }}-{{ checksum "Package.swift" }}
-          paths:
-            - .build/
-            - Package.resolved
-      - persist_to_workspace:
-          root: .build
-          paths:
-            - checkouts
-            - repositories
+          command: swift package resolve
 
   build_debug:
     <<: *defaults
     steps:
       - checkout
-      - attach_workspace:
-          at: .build
       - run:
           name: Build
-          command: |
-           swift build
-      - persist_to_workspace:
-          root: .build
-          paths:
-            - checkouts
-            - repositories
-            - x86_64-unknown-linux/debug
+          command: swift build
+
+  build_release:
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          name: Build
+          command: swift build -c release
 
   test:
     <<: *defaults
@@ -55,9 +37,7 @@ jobs:
           at: .build
       - run:
           name: Run unit tests
-          command: |
-            find .build -type d
-            swift test --parallel
+          command: swift test --parallel
 workflows:
   version: 2
   resolve_build_and_test:
@@ -66,6 +46,10 @@ workflows:
       - build_debug:
           requires:
             - resolve
+      - build_release:
+          requires:
+            - resolve
       - test:
           requires:
+            - build_release
             - build_debug
