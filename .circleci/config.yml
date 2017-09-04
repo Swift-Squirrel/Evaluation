@@ -56,6 +56,7 @@ jobs:
       - run:
           name: Run unit tests
           command: |
+            find .build -type d
             swift test --parallel
 workflows:
   version: 2
