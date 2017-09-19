@@ -26,8 +26,8 @@ Operands must be same type
 |`+`|140|Binary| `Int`, `UInt`, `Double`, `Float`, `String` |
 |`-`|140|Binary| `Int`, `UInt`, `Double`, `Float` |
 |`??`|131|Binary| `Any?` |
-|`==`|130|Binary| `Int`, `UInt`, `Double`, `Float`, `String`, `Bool` |
-|`!=`|130|Binary| `Int`, `UInt`, `Double`, `Float`, `String`, `Bool` |
+|`==`|130|Binary| `Int`, `UInt`, `Double`, `Float`, `String`, `Bool`, `nil` |
+|`!=`|130|Binary| `Int`, `UInt`, `Double`, `Float`, `String`, `Bool`, `nil` |
 |`<`|130|Binary| `Int`, `UInt`, `Double`, `Float`, `String` |
 |`<=`|130|Binary| `Int`, `UInt`, `Double`, `Float`, `String` |
 |`>`|130|Binary| `Int`, `UInt`, `Double`, `Float`, `String` |
@@ -215,6 +215,6 @@ You can add this to Package.swift
 
 ```swift
 dependencies: [
-	.package(url: "https://github.com/LeoNavel/Evaluation.git", from: "0.2.0")
+	.package(url: "https://github.com/LeoNavel/Evaluation.git", from: "0.2.1")
 ]
 ```
