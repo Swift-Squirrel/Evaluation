@@ -460,10 +460,17 @@ extension Evaluation {
                     let second = stack.pop()!
                     let first = stack.pop()!
                     if second == nil || first == nil {
-                        throw EvaluationError(
-                            kind: .nilFound(expr: String(describing: first) + token.value + String(describing: second)))
+                        if operation.symbol == "==" {
+                            stack.push(item: second == nil && first == nil)
+                        } else if operation.symbol == "!=" {
+                            stack.push(item: !(second == nil && first == nil))
+                        } else {
+                            throw EvaluationError(
+                                kind: .nilFound(expr: String(describing: first) + token.value + String(describing: second)))
+                        }
+                    } else {
+                        stack.push(item: try binary(first!, second!))
                     }
-                    stack.push(item: try binary(first!, second!))
                 case .binaryNilCoalescing(let cloalescing):
                     guard stack.count > 1 else {
                         throw EvaluationError(kind: .missingValue(forOperand: operation.symbol),

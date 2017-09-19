@@ -2,6 +2,16 @@ import XCTest
 @testable import Evaluation
 
 class EvaluationTests: XCTestCase {
+    func testNil() {
+        let expr = "action == \"login\" || action == nil"
+        let res = expr.evaluateAsBool()
+        guard let bool = res else {
+            XCTFail()
+            return
+        }
+        XCTAssertTrue(bool)
+    }
+
     func testLong() {
         let expression = "4 + Int(0.5 * Double(2)) / Int(\"1\" + \"\") "
             + "< Int(Double(41) * a + (Double(\"smthng\") ?? 1.0)) "
@@ -55,5 +65,6 @@ class EvaluationTests: XCTestCase {
     static var allTests = [
         ("testLong", testLong),
         ("testToInt", testToInt),
+        ("testNil", testNil),
     ]
 }
