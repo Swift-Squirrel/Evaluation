@@ -17,6 +17,9 @@ public struct EvaluationError: Error, CustomStringConvertible {
     /// - syntaxError: Syntax error
     /// - missingValue: Missing value for operand
     /// - nilFound: Unexpected nil found
+    /// - decodingError: Error while decoding postfix in `PostfixEvaluation(postfix:)`
+    /// - encodingError: Error while encoding postfix
+    /// - unknownOperation: Unknown operation symbol in encoding
     public enum ErrorKind {
         case canNotApplyBinOperand(oper: String, type1: String, type2: String)
         case canNotApplyUnaryOperand(oper: String, type: String)
@@ -25,6 +28,9 @@ public struct EvaluationError: Error, CustomStringConvertible {
         case syntaxError
         case missingValue(forOperand: String)
         case nilFound(expr: String)
+        case decodingError
+        case encodingError
+        case unknownOperation(operation: String)
     }
 
     init(kind: ErrorKind, description: String? = nil) {
@@ -57,6 +63,12 @@ public struct EvaluationError: Error, CustomStringConvertible {
             return "Missing value for '\(operand)'"
         case .nilFound:
             return "Found nil"
+        case .decodingError:
+            return "Error while decoding postfix in PostfixEvaluation(postfix:)"
+        case .encodingError:
+            return "Trying encode postfix with invalid token"
+        case .unknownOperation(let symbol):
+            return "Unknown operation symbol '\(symbol)' found while encoding"
         }
     }
 }

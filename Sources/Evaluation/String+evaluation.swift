@@ -6,6 +6,9 @@
 //
 //
 
+@available(*, unavailable, renamed: "InfixEvaluation")
+public typealias Evaluation = InfixEvaluation
+
 // MARK: - Evaluate functions
 public extension String {
     /// Evaluate self
@@ -14,7 +17,7 @@ public extension String {
     /// - Returns: Result of evaluation
     /// - Throws: Evaluation errors
     func evaluate(with data: [String: Any] = [:]) throws -> Any? {
-        return try Evaluation(expression: self).evaluate(with: data)
+        return try InfixEvaluation(expression: self).evaluate(with: data)
     }
 
     /// Evaluate self and expect result to be String

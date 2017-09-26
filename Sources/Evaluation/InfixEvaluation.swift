@@ -1,56 +1,16 @@
 //
-//  Evaluation.swift
+//  InfixEvaluation.swift
 //  Evaluation
 //
 //  Created by Filip Klembara on 8/5/17.
 //
 //
 
-import Foundation
-
-/// Evaluation class
-public class Evaluation {
-    private let string: String
+/// InfixEvaluation class
+public class InfixEvaluation: PostfixEvaluation {
     private var tokens = [Token]()
+    private let string: String
     private let chars: [String]
-
-    private var _postfix = [Token]()
-
-    /// Postfix notation of given expression
-    private var stringPostfix: [String]? = nil
-
-    /// String representation of postfix
-    public var postfix: [String] {
-        if stringPostfix == nil {
-            stringPostfix = _postfix.map({ $0.value })
-        }
-        return stringPostfix!
-    }
-
-    private struct Token {
-        // swiftlint:disable:next nesting
-        enum TokenType {
-            case operation(oper: OperationProtocol)
-            case open
-            case close
-            case double
-            case int
-            case bool
-            case string
-            case variable
-            case bottom
-            case stringCast
-            case intCast
-            case uintCast
-            case boolCast
-            case doubleCast
-            case floatCast
-        }
-
-        let type: TokenType
-        let value: String
-    }
-
 
     /// Perform lexical analysis and makes postfix notation of given expression
     ///
@@ -58,9 +18,10 @@ public class Evaluation {
     /// - Throws: lexical and syntax error as `EvaluationError`
     public init(expression string: String) throws {
         self.string = string
-        chars = Array(string.characters).map({ String(describing: $0) })
+        self.chars = string.map({ $0.description })
+        super.init(postfix: [])
         try parseTokens(string: string)
-        try makePostfix()
+        self.postfix = try makePostfix()
     }
 
     private var index = -1
@@ -111,43 +72,43 @@ public class Evaluation {
             addToken(type: .bool, value: cnt)
         case "String":
             if let char = nextChar(), char == "(" {
-                let cnt = try variableCast()
-                addToken(type: .stringCast, value: cnt)
+                charBack()
+                addToken(type: .operation(oper: StringCast()), value: "String")
             } else {
                 fallthrough
             }
         case "Int":
             if let char = nextChar(), char == "(" {
-                let cnt = try variableCast()
-                addToken(type: .intCast, value: cnt)
+                charBack()
+                addToken(type: .operation(oper: IntCast()), value: "Int")
             } else {
                 fallthrough
             }
         case "UInt":
             if let char = nextChar(), char == "(" {
-                let cnt = try variableCast()
-                addToken(type: .uintCast, value: cnt)
+                charBack()
+                addToken(type: .operation(oper: UIntCast()), value: "UInt")
             } else {
                 fallthrough
             }
         case "Bool":
             if let char = nextChar(), char == "(" {
-                let cnt = try variableCast()
-                addToken(type: .boolCast, value: cnt)
+                charBack()
+                addToken(type: .operation(oper: BoolCast()), value: "Bool")
             } else {
                 fallthrough
             }
         case "Double":
             if let char = nextChar(), char == "(" {
-                let cnt = try variableCast()
-                addToken(type: .doubleCast, value: cnt)
+                charBack()
+                addToken(type: .operation(oper: DoubleCast()), value: "Double")
             } else {
                 fallthrough
             }
         case "Float":
             if let char = nextChar(), char == "(" {
-                let cnt = try variableCast()
-                addToken(type: .floatCast, value: cnt)
+                charBack()
+                addToken(type: .operation(oper: FloatCast()), value: "Float")
             } else {
                 fallthrough
             }
@@ -238,7 +199,7 @@ public class Evaluation {
     }
 }
 
-extension Evaluation {
+extension InfixEvaluation {
 
     // swiftlint:disable function_body_length
     private func parseTokens(string: String) throws {
@@ -358,7 +319,7 @@ extension Evaluation {
 }
 // swiftlint:enable function_body_length
 
-extension Evaluation {
+extension InfixEvaluation {
     private func getPrecedence(token: Token) -> UInt8? {
         switch token.type {
         case .operation(oper: let oper):
@@ -370,7 +331,7 @@ extension Evaluation {
         }
     }
 
-    private func makePostfix() throws {
+    private func makePostfix() throws -> [PostfixEvaluation.Token] {
         var res = [Token]()
         let stack = Stack<Token>()
         stack.push(item: Token(type: .bottom, value: "#"))
@@ -411,148 +372,6 @@ extension Evaluation {
         while stack.top()!.value != "#" {
             res.append(stack.pop()!)
         }
-        _postfix = res
-    }
-}
-
-extension Evaluation {
-    private func getValue(name: String, from data: [String: Any]) -> Any? {
-        if name.contains(".") {
-            let separated = name.components(separatedBy: ".")
-            if separated.count == 2 {
-                if separated[1] == "count" {
-                    if let arr = data[separated[0]] as? [Any] {
-                        return arr.count
-                    } else if let dir = data[separated[0]] as? [String: Any] {
-                        return dir.count
-                    }
-                }
-            }
-            guard let newData = data[separated[0]] as? [String: Any] else {
-                return nil
-            }
-            var seps = separated
-            seps.removeFirst()
-            return getValue(name: seps.joined(separator: "."), from: newData)
-        } else {
-            return data[name]
-        }
-    }
-
-
-    /// Evaluate expression and return result
-    ///
-    /// - Parameter data: Dictionary with variables used in expression
-    /// - Returns: result of expression
-    /// - Throws: semantic and syntax error: `EvaluationError`
-    public func evaluate(with data: [String: Any] = [:]) throws -> Any? {
-        // swiftlint:disable:previous function_body_length
-        let stack = Stack<Any?>()
-
-        for token in _postfix {
-            switch token.type {
-            case .operation(let operation):
-                switch operation.operation {
-                case .binary(let binary):
-                    guard stack.count > 1 else {
-                        throw EvaluationError(kind: .missingValue(forOperand: operation.symbol))
-                    }
-                    let second = stack.pop()!
-                    let first = stack.pop()!
-                    if second == nil || first == nil {
-                        if operation.symbol == "==" {
-                            stack.push(item: second == nil && first == nil)
-                        } else if operation.symbol == "!=" {
-                            stack.push(item: !(second == nil && first == nil))
-                        } else {
-                            throw EvaluationError(
-                                kind: .nilFound(expr: String(describing: first) + token.value + String(describing: second)))
-                        }
-                    } else {
-                        stack.push(item: try binary(first!, second!))
-                    }
-                case .binaryNilCoalescing(let cloalescing):
-                    guard stack.count > 1 else {
-                        throw EvaluationError(kind: .missingValue(forOperand: operation.symbol),
-                                              description: "Missing value for binary operation")
-                    }
-                    let second = stack.pop()!
-                    let first = stack.pop()!
-                    stack.push(item: cloalescing(first, second))
-                case .unary(let unary):
-                    guard stack.count > 0 else {
-                        throw EvaluationError(kind: .missingValue(forOperand: operation.symbol))
-                    }
-                    let first = stack.pop()!
-                    if first == nil {
-                        throw EvaluationError(
-                            kind: .nilFound(expr: token.value + String(describing: first)))
-                    }
-                    stack.push(item: try unary(first!))
-                }
-            case .bool:
-                stack.push(item: token.value == "true")
-            case .double:
-                stack.push(item: Double(token.value)!)
-            case .int:
-                stack.push(item: Int(token.value)!)
-            case .string:
-                stack.push(item: token.value)
-            case .stringCast:
-                let eval = try Evaluation(expression: token.value)
-                guard let res = try eval.evaluate(with: data) else {
-                    throw EvaluationError(kind: .nilFound(expr: "\(token.value) as! String"))
-                }
-                stack.push(item: String(describing: res))
-            case .intCast:
-                let eval = try Evaluation(expression: token.value)
-                guard let res = try eval.evaluate(with: data) else {
-                    throw EvaluationError(kind: .nilFound(expr: "\(token.value) as! Int"))
-                }
-                if let a = res as? Double {
-                    stack.push(item: Int(a))
-                } else if let a = res as? UInt {
-                    stack.push(item: Int(a))
-                } else {
-                    stack.push(item: Int(String(describing: res)))
-                }
-            case .uintCast:
-                let eval = try Evaluation(expression: token.value)
-                guard let res = try eval.evaluate(with: data) else {
-                    throw EvaluationError(kind: .nilFound(expr: "\(token.value) as! UInt"))
-                }
-                if let a = res as? Double {
-                    stack.push(item: UInt(a))
-                } else if let a = res as? Int {
-                    stack.push(item: UInt(a))
-                } else {
-                    stack.push(item: Int(String(describing: res)))
-                }
-            case .doubleCast:
-                let eval = try Evaluation(expression: token.value)
-                guard let res = try eval.evaluate(with: data) else {
-                    throw EvaluationError(kind: .nilFound(expr: "\(token.value) as! Double"))
-                }
-                stack.push(item: Double(String(describing: res)))
-            case .floatCast:
-                let eval = try Evaluation(expression: token.value)
-                guard let res = try eval.evaluate(with: data) else {
-                    throw EvaluationError(kind: .nilFound(expr: "\(token.value) as! Float"))
-                }
-                stack.push(item: Float(String(describing: res)))
-            case .boolCast:
-                let eval = try Evaluation(expression: token.value)
-                guard let res = try eval.evaluate(with: data) else {
-                    throw EvaluationError(kind: .nilFound(expr: "\(token.value) as! Bool"))
-                }
-                stack.push(item: Bool(String(describing: res)))
-            default:
-                stack.push(item: getValue(name: token.value, from: data))
-            }
-        }
-        guard !stack.isEmpty() else {
-            throw EvaluationError(kind: .missingValue(forOperand: "result"), description: "There is no final result")
-        }
-        return stack.top()!
+        return res
     }
 }
