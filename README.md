@@ -5,7 +5,8 @@ Evaluation is swift library which can evaluate content of String and return resu
 - [Operations](#operations)
 - [Casting functions](#casting-functions)
 - [Usage](#usage)
-    - [Evaluation class](#evaluation-class)
+    - [PostfixEvaluation class](#postfixevaluation-class)
+    - [InfixEvaluation class](#infixevaluation-class)
     - [String extension](#string-extension)
     - [Using variables](#using-variables)
     - [Array functions](#array-functions)
@@ -39,7 +40,7 @@ Operands must be same type
 You can cast with theese functions:
 
 ```swift
-String(_) -> String?
+String(_) -> String
 Double(_) -> Double?
 Float(_) -> Float?
 Int(_) -> Int?
@@ -55,19 +56,38 @@ You can use evaluations with String extension or with `Evaluation` class just do
 import Evaluation
 ```
 
-### Evaluation class
-Evaluation class divide proccess to two parts, first token parsing and postfix transformation and second evaluate expression.
+### PostfixEvaluation class
+This class gives you power to evaluate from postfix tokens.
 
 ```swift
-public class Evaluation {
+public class PostfixEvaluation {
+    /// Serialized postfix in JSON format
+    public func serializedPostfix() throws -> Data
+    public func serializedPostfix() throws -> String
+    
+    /// Construct from JSON
+    public init(postfix: String) throws 
+    public init(postfixData: Data) throws
+    
+    /// Evaluate
+    public func evaluate(with data: [String: Any] = [:]) throws -> Any?
+}
+```
+
+### InfixEvaluation class
+InfixEvaluation class divide proccess to two parts, first token parsing and postfix transformation and second evaluates expression.
+
+```swift
+public class InfixEvaluation: PostfixEvaluation {
+    /// Serialized postfix in JSON format
+    public func serializedPostfix() throws -> Data
+    public func serializedPostfix() throws -> String
+    
     /// Perform lexical analysis and makes postfix notation of given expression
     ///
     /// - Parameter string: expression
     /// - Throws: lexical and syntax error as `EvaluationError`
     public init(expression string: String) throws
-    
-    /// Postfix notation of given expression
-    public var postfix: [String] { get }
     
     /// Evaluate expression and return result
     ///
@@ -139,11 +159,10 @@ import Evaluation
 
 // If you wan to know if something goes wrong use Evaluation class
 do {
-    let eval = try Evaluation(expression: "1 + 5 < seven")
-    if let result = (try eval.calculate(with: ["seven": 7])) as? Bool {
+    let eval = try InfixEvaluation(expression: "1 + 5 < seven")
+    if let result = (try eval.evaluate(with: ["seven": 7])) as? Bool {
         print(result) // true
     }
-
 } catch let error {
     print(error)
 }
@@ -175,6 +194,17 @@ print("person1.children.count == person2.children.count".evaluateAsBool(with: da
 // You can change type like this
 print("Int( (Double(person1.age) + Double(person2.age)) / 2.0 )".evaluateAsInt(with: data)!) // 20
 
+// JSON usage
+do {
+    let infixEval = try InfixEvaluation(expression: "3 + 1")
+    let postfix: String = try infixEval.serializedPostfix()
+    print(postfix) // [{"type":{"int":"Int"},"value":"3"},{"type":{"int":"Int"},"value":"1"},{"type":{"operation":"+"},"value":"+"}]
+    let postfixEval = try PostfixEvaluation(postfix: postfix)
+    let result = try postfixEval.evaluate() as! Int
+    print(result) // 4
+} catch let error {
+    print(error)
+}
 ```
 
 ## Errors
@@ -198,6 +228,12 @@ public struct EvaluationError: Error, CustomStringConvertible {
         case missingValue(forOperand: String)
 
         case nilFound(expr: String)
+        
+        case decodingError
+        
+        case encodingError
+        
+        case unknownOperation(operation: String)
     }
     
     /// Error kind
@@ -215,6 +251,6 @@ You can add this to Package.swift
 
 ```swift
 dependencies: [
-	.package(url: "https://github.com/LeoNavel/Evaluation.git", from: "0.2.1")
+	.package(url: "https://github.com/LeoNavel/Evaluation.git", from: "0.3.0")
 ]
 ```

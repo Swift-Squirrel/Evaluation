@@ -31,6 +31,7 @@ class PostfixEvaluationTests: XCTestCase {
             XCTFail()
             return
         }
+
         guard let resultAny = try? eval.evaluate() else {
             XCTFail()
             return
