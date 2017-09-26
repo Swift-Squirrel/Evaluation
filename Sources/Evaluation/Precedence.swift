@@ -12,7 +12,7 @@
 /// - binaryNilCoalescing: Nil coalescing operation `??`
 /// - unary: Unary operation
 /// - cast: Cast operation
-public enum Operations {
+enum Operations {
     case binary(closure: (Any, Any) throws -> (Any))
     case binaryNilCoalescing(closure: (Any?, Any?) -> Any?)
     case unary(closure: (Any) throws -> (Any))
@@ -23,13 +23,13 @@ public enum Operations {
 ///
 /// - left: left
 /// - right: right
-public enum Associativity {
+enum Associativity {
     case left
     case right
 }
 
 /// Operation
-public protocol OperationProtocol {
+protocol OperationProtocol {
     /// Precedence
     var precedence: UInt8 { get }
 
@@ -259,7 +259,6 @@ struct NotEqualOperator: OperationProtocol {
     }
 }
 
-
 struct LessOperator: OperationProtocol {
     let associativity: Associativity = .left
 
@@ -324,7 +323,6 @@ struct LessEqualOperator: OperationProtocol {
     }
 }
 
-
 struct GreaterOperator: OperationProtocol {
     let associativity: Associativity = .left
 
@@ -356,6 +354,7 @@ struct GreaterOperator: OperationProtocol {
         }
     }
 }
+
 struct GreaterEqualOperator: OperationProtocol {
     let associativity: Associativity = .left
 
@@ -387,7 +386,6 @@ struct GreaterEqualOperator: OperationProtocol {
         }
     }
 }
-
 
 struct AndOperator: OperationProtocol {
     let associativity: Associativity = .left

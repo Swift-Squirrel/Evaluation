@@ -6,8 +6,6 @@
 //
 //
 
-import PostfixEvaluation
-
 /// InfixEvaluation class
 public class InfixEvaluation: PostfixEvaluation {
     private var tokens = [Token]()

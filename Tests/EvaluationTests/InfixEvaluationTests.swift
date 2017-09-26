@@ -1,7 +1,7 @@
 import XCTest
 @testable import Evaluation
 
-class EvaluationTests: XCTestCase {
+class InfixEvaluationTests: XCTestCase {
     func testNil() {
         let expr = "action == \"login\" || action == nil"
         let res = expr.evaluateAsBool()

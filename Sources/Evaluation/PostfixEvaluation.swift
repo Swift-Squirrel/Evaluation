@@ -10,10 +10,31 @@ import Foundation
 /// Postfix evaluation
 public class PostfixEvaluation {
 
-    var postfix = [Token]()
+    var postfix: [Token]
+
+    /// Serialized postfix in JSON format
+    ///
+    /// - Returns: Data representation of postfix
+    /// - Throws: JSONEncoder errors
+    public func serializedPostfix() throws -> Data {
+        let encoder = JSONEncoder()
+        return try encoder.encode(postfix)
+    }
+
+    /// Serialized postfix in JSON format
+    ///
+    /// - Returns: Data representation of postfix
+    /// - Throws: JSONEncoder errors
+    public func serializedPostfix() throws -> String {
+        let data: Data = try serializedPostfix()
+        guard let string = String(data: data, encoding: .utf8) else {
+            throw EvaluationError(kind: .encodingError, description: "Can not represent data in utf8")
+        }
+        return string
+    }
 
     /// Evaluation tokens
-    public struct Token {
+    struct Token: Codable {
         /// Evaluation token types
         ///
         /// - operation: Operation
@@ -25,7 +46,7 @@ public class PostfixEvaluation {
         /// - string: String value
         /// - variable: Variable
         /// - bottom: Bottom of stack $
-        public enum TokenType { // swiftlint:disable:this nesting
+        enum TokenType { // swiftlint:disable:this nesting
             case operation(oper: OperationProtocol)
             case open
             case close
@@ -38,16 +59,33 @@ public class PostfixEvaluation {
         }
 
         /// Token type
-        public let type: TokenType
+        let type: TokenType
         /// Token value
-        public let value: String
+        let value: String
     }
 
-    /// Construct from tokens in postfix
-    ///
-    /// - Parameter postfix: Postfix tokens
-    public init(postfix: [Token]) {
+    init(postfix: [Token]) {
         self.postfix = postfix
+    }
+
+    /// Construct from string representing postfix tokens in JSON
+    ///
+    /// - Parameter postfix: JSON representation of postfix tokens
+    /// - Throws: EvaluationError(kind: .decodingError) and JSONDecoder errors
+    public convenience init(postfix: String) throws {
+        guard let data = postfix.data(using: .utf8) else {
+            throw EvaluationError(kind: .decodingError, description: "Can not represent string as data with utf8")
+        }
+        try self.init(postfixData: data)
+    }
+
+    /// Construct from data representing postfix tokens in JSON
+    ///
+    /// - Parameter data: JSON representation of postfix tokens
+    /// - Throws: JSONDecoder errors
+    public init(postfixData data: Data) throws {
+        let decoder = JSONDecoder()
+        self.postfix = try decoder.decode([Token].self, from: data)
     }
 }
 
@@ -156,5 +194,117 @@ extension PostfixEvaluation {
             throw EvaluationError(kind: .syntaxError, description: "There is more than one value in final stack")
         }
         return result
+    }
+}
+
+// MARK: - Codable tokens
+extension PostfixEvaluation.Token.TokenType: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case operation
+        case double
+        case int
+        case bool
+        case string
+        case variable
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        if let value = try? values.decode(String.self, forKey: .operation) {
+            //            self = .string(str: value)
+            self = .operation(oper: try getOperationBy(symbol: value))
+            return
+        }
+        if values.contains(.double) {
+            self = .double
+            return
+        }
+        if values.contains(.int) {
+            self = .int
+            return
+        }
+        if values.contains(.bool) {
+            self = .bool
+            return
+        }
+        if values.contains(.string) {
+            self = .string
+            return
+        }
+        if values.contains(.variable) {
+            self = .variable
+            return
+        }
+        throw EvaluationError(kind: .decodingError)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        switch self {
+        case .operation(let operation):
+            try container.encode(operation.symbol, forKey: .operation)
+        case .double:
+            try container.encode("Double", forKey: .double)
+        case .int:
+            try container.encode("Int", forKey: .int)
+        case .bool:
+            try container.encode("Bool", forKey: .bool)
+        case .string:
+            try container.encode("String", forKey: .string)
+        case .variable:
+            try container.encode("Variable", forKey: .variable)
+        default:
+            throw EvaluationError(kind: .encodingError)
+        }
+    }
+}
+
+// swiftlint:disable:next function_body_length
+fileprivate func getOperationBy(symbol: String) throws -> OperationProtocol {
+    switch symbol {
+    case "+":
+        return AdditionOperator()
+    case "-":
+        return SubOperator()
+    case "*":
+        return MulOperator()
+    case "/":
+        return DivOperator()
+    case "%":
+        return ModOperator()
+    case "==":
+        return EqualOperator()
+    case "!=":
+        return NotEqualOperator()
+    case "<":
+        return LessOperator()
+    case "<=":
+        return LessEqualOperator()
+    case ">":
+        return GreaterOperator()
+    case ">=":
+        return GreaterEqualOperator()
+    case "&&":
+        return AndOperator()
+    case "||":
+        return OrOperator()
+    case  "!":
+        return NotOperator()
+    case "??":
+        return NilCoalescingOperator()
+    case "String":
+        return StringCast()
+    case "Int":
+        return IntCast()
+    case "UInt":
+        return UIntCast()
+    case "Double":
+        return DoubleCast()
+    case "Float":
+        return FloatCast()
+    case "Bool":
+        return BoolCast()
+    default:
+        throw EvaluationError(kind: .unknownOperation(operation: symbol))
     }
 }
