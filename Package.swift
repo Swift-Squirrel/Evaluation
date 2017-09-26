@@ -10,8 +10,7 @@ let package = Package(
         ],
     targets: [
         .target(
-            name: "Evaluation",
-            dependencies: []),
+            name: "Evaluation"),
         .testTarget(
             name: "EvaluationTests",
             dependencies: ["Evaluation"]),

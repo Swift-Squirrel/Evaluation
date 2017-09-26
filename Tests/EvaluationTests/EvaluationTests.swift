@@ -17,7 +17,7 @@ class EvaluationTests: XCTestCase {
             + "< Int(Double(41) * a + (Double(\"smthng\") ?? 1.0)) "
             + "&& c.count == Int(7.0 / 2.0) && (c.male == true || c.name == \"John\")"
 
-        guard let eval = try? Evaluation(expression: expression) else {
+        guard let eval = try? InfixEvaluation(expression: expression) else {
             XCTFail()
             return
         }
@@ -41,7 +41,7 @@ class EvaluationTests: XCTestCase {
     func testToInt() {
         let expression = "21 + Int(1.0 * 4.01 * Double(Int(\"4\") / 1)) % 2"
 
-        guard let eval = try? Evaluation(expression: expression) else {
+        guard let eval = try? InfixEvaluation(expression: expression) else {
             XCTFail()
             return
         }

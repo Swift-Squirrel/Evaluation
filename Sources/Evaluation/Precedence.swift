@@ -6,23 +6,40 @@
 //
 //
 
-enum Operations {
+/// Operations
+///
+/// - binary: Binary operation
+/// - binaryNilCoalescing: Nil coalescing operation `??`
+/// - unary: Unary operation
+/// - cast: Cast operation
+public enum Operations {
     case binary(closure: (Any, Any) throws -> (Any))
     case binaryNilCoalescing(closure: (Any?, Any?) -> Any?)
     case unary(closure: (Any) throws -> (Any))
+    case cast(closure: (Any) -> (Any?))
 }
-enum Associativity {
+
+/// Associativity
+///
+/// - left: left
+/// - right: right
+public enum Associativity {
     case left
     case right
 }
 
-protocol OperationProtocol {
+/// Operation
+public protocol OperationProtocol {
+    /// Precedence
     var precedence: UInt8 { get }
 
+    /// Symbol
     var symbol: String { get }
 
+    /// Operation
     var operation: Operations { get }
 
+    /// Associativity
     var associativity: Associativity { get }
 }
 
@@ -451,5 +468,89 @@ struct NilCoalescingOperator: OperationProtocol {
     let operation: Operations = .binaryNilCoalescing() {
         (first, second) in
         return first ?? second
+    }
+}
+
+struct StringCast: OperationProtocol {
+    let associativity: Associativity = .right
+
+    let symbol = "String"
+
+    let precedence: UInt8 = 210
+
+    let operation: Operations = .cast { (string) -> (Any?) in
+        return String(describing: string)
+    }
+}
+
+struct IntCast: OperationProtocol {
+    let associativity: Associativity = .right
+
+    let symbol = "Int"
+
+    let precedence: UInt8 = 210
+
+    let operation: Operations = .cast { (value) -> (Any?) in
+        if let double = value as? Double {
+            return Int(double)
+        } else if let uint = value as? UInt {
+            return Int(uint)
+        } else {
+            return Int(String(describing: value))
+        }
+    }
+}
+
+struct UIntCast: OperationProtocol {
+    let associativity: Associativity = .right
+
+    let symbol = "UInt"
+
+    let precedence: UInt8 = 210
+
+    let operation: Operations = .cast { (value) -> (Any?) in
+        if let double = value as? Double {
+            return UInt(double)
+        } else if let int = value as? Int {
+            return UInt(int)
+        } else {
+            return UInt(String(describing: value))
+        }
+    }
+}
+
+struct DoubleCast: OperationProtocol {
+    let associativity: Associativity = .right
+
+    let symbol = "Double"
+
+    let precedence: UInt8 = 210
+
+    let operation: Operations = .cast { (value) -> (Any?) in
+        return Double(String(describing: value))
+    }
+}
+
+struct FloatCast: OperationProtocol {
+    let associativity: Associativity = .right
+
+    let symbol = "Float"
+
+    let precedence: UInt8 = 210
+
+    let operation: Operations = .cast { (value) -> (Any?) in
+        return Float(String(describing: value))
+    }
+}
+
+struct BoolCast: OperationProtocol {
+    let associativity: Associativity = .right
+
+    let symbol = "Bool"
+
+    let precedence: UInt8 = 210
+
+    let operation: Operations = .cast { (value) -> (Any?) in
+        return Bool(String(describing: value))
     }
 }
