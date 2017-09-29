@@ -9,8 +9,7 @@ import Foundation
 
 /// Postfix evaluation
 public class PostfixEvaluation {
-
-    var postfix: [Token]
+    public internal(set) var postfix: [Token]
 
     /// Serialized postfix in JSON format
     ///
@@ -34,7 +33,7 @@ public class PostfixEvaluation {
     }
 
     /// Evaluation tokens
-    struct Token: Codable {
+    public struct Token: Codable {
         /// Evaluation token types
         ///
         /// - operation: Operation
@@ -64,7 +63,7 @@ public class PostfixEvaluation {
         let value: String
     }
 
-    init(postfix: [Token]) {
+    public init(postfix: [Token]) {
         self.postfix = postfix
     }
 
@@ -211,7 +210,6 @@ extension PostfixEvaluation.Token.TokenType: Codable {
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         if let value = try? values.decode(String.self, forKey: .operation) {
-            //            self = .string(str: value)
             self = .operation(oper: try getOperationBy(symbol: value))
             return
         }

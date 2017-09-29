@@ -64,8 +64,10 @@ public class PostfixEvaluation {
     /// Serialized postfix in JSON format
     public func serializedPostfix() throws -> Data
     public func serializedPostfix() throws -> String
+    public var postfix: [PostfixEvaluation.Token] { get }
     
     /// Construct from JSON
+    public init(postfix: [PostfixEvaluation.Token])
     public init(postfix: String) throws 
     public init(postfixData: Data) throws
     
@@ -251,6 +253,6 @@ You can add this to Package.swift
 
 ```swift
 dependencies: [
-	.package(url: "https://github.com/LeoNavel/Evaluation.git", from: "0.3.0")
+	.package(url: "https://github.com/LeoNavel/Evaluation.git", from: "0.3.1")
 ]
 ```
