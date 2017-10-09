@@ -253,6 +253,6 @@ You can add this to Package.swift
 
 ```swift
 dependencies: [
-	.package(url: "https://github.com/LeoNavel/Evaluation.git", from: "0.3.1")
+	.package(url: "https://github.com/Swift-Squirrel/Evaluation.git", from: "0.3.1")
 ]
 ```
