@@ -477,7 +477,18 @@ struct StringCast: OperationProtocol {
     let precedence: UInt8 = 210
 
     let operation: Operations = .cast { (string) -> (Any?) in
-        return String(describing: string)
+        switch string {
+        case let int as Int:
+            return int.description
+        case let double as Double:
+            return double.description
+        case let uint as UInt:
+            return uint.description
+        case let bool as Bool:
+            return bool.description
+        default:
+            return String(describing: string)
+        }
     }
 }
 
