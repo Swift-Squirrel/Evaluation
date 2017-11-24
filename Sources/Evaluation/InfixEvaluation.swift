@@ -43,7 +43,7 @@ public class InfixEvaluation: PostfixEvaluation {
         var cnt = ""
         while let char = nextChar() {
             if isStarting {
-                guard isChar(char: char) else {
+                guard isChar(char: char) || char == "_" else {
                     throw EvaluationError(kind: .unexpectedCharacter(reading: cnt,
                                                                      expected: "variable identifier",
                                                                      got: char))
@@ -112,6 +112,8 @@ public class InfixEvaluation: PostfixEvaluation {
             } else {
                 fallthrough
             }
+        case "_":
+            throw EvaluationError(kind: .unexpectedCharacter(reading: cnt, expected: "Variable identifier", got: "\(nextChar() ?? "EOF")"), description: "Variable name can not be just '_'")
         default:
             guard !cnt.components(separatedBy: ".").contains(where: { $0 == "false" || $0 == "true" }) else {
                 throw EvaluationError(kind: .syntaxError, description: "variable name can not use false|true as part")
@@ -305,7 +307,7 @@ extension InfixEvaluation {
             default:
                 if isNumber(char: char) {
                     try parseNumber(char: char)
-                } else if isChar(char: char) {
+                } else if isChar(char: char) || char == "_" {
                     charBack()
                     try parseVariable()
                 } else {

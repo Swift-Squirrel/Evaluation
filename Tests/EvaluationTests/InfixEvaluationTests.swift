@@ -61,10 +61,35 @@ class InfixEvaluationTests: XCTestCase {
         }
         XCTAssertTrue(a == 21)
     }
+
+    func testVarName() {
+        let expression = "_a + Int(c._d * 4.01)"
+
+        guard let eval = try? InfixEvaluation(expression: expression) else {
+            XCTFail()
+            return
+        }
+        let data: [String: Any] = [
+            "_a": 2,
+            "b": [1,1],
+            "c": [
+                "_d": 2.0,
+                "name": "John",
+                "male": true
+            ]
+        ]
+        XCTAssertNoThrow(try eval.evaluate(with: data))
+        guard let a = (try? eval.evaluate(with: data)) as? Int else {
+            XCTFail()
+            return
+        }
+        XCTAssertTrue(a == 10)
+    }
     
     static var allTests = [
         ("testLong", testLong),
         ("testToInt", testToInt),
         ("testNil", testNil),
+        ("testVarName", testVarName)
     ]
 }
