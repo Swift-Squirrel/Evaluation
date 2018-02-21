@@ -299,10 +299,34 @@ extension InfixEvaluation {
                         throw EvaluationError(kind: .unexpectedEnd(reading: "\""),
                                               description: "Unexpected end while reading string")
                     }
-                    char = char1
-                    cnt += char
+                    if char1 == "\\" {
+                        guard let char2 = nextChar() else {
+                            throw EvaluationError(kind: .unexpectedEnd(reading: "escape sequence"),
+                                                  description: "Unexpected end while reading string")
+                        }
+                        let escapedChar: String
+                        switch char2 {
+                        case "0":
+                            escapedChar = "\0"
+                        case "\\", "\'", "\"":
+                            escapedChar = char2
+                        case "t":
+                            escapedChar = "\t"
+                        case "n":
+                            escapedChar = "\n"
+                        case "r":
+                            escapedChar = "\r"
+                        default:
+                            throw EvaluationError(kind: .unexpectedCharacter(reading: "\\", expected: "0|\\|t|n|r|\"|\'", got: char2))
+                        }
+                        char = char1
+                        cnt += escapedChar
+                    } else {
+                        char = char1
+                        cnt += char
+                    }
                 } while char != "\""
-                cnt.remove(at: cnt.index(before: cnt.endIndex))
+                let _ = cnt.removeLast()
                 addToken(type: .string, value: cnt)
             default:
                 if isNumber(char: char) {

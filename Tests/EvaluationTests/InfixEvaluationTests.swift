@@ -85,11 +85,29 @@ class InfixEvaluationTests: XCTestCase {
         }
         XCTAssertTrue(a == 10)
     }
+
+    func testStringEscape() {
+        let expression = "\"<link rel=\\\"stylesheet\\\" type=\\\"text/css\\\" href=\\\"mystyle.css\\\">\""
+
+        XCTAssertNoThrow(try InfixEvaluation(expression: expression))
+
+        guard let eval = try? InfixEvaluation(expression: expression) else {
+            XCTFail()
+            return
+        }
+        XCTAssertNoThrow(try eval.evaluate())
+        guard let a = (try? eval.evaluate()) as? String else {
+            XCTFail()
+            return
+        }
+        XCTAssertTrue(a == "<link rel=\"stylesheet\" type=\"text/css\" href=\"mystyle.css\">")
+    }
     
     static var allTests = [
         ("testLong", testLong),
         ("testToInt", testToInt),
         ("testNil", testNil),
+        ("testStringEscape", testStringEscape),
         ("testVarName", testVarName)
     ]
 }
